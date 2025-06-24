@@ -1,6 +1,6 @@
 package hana.lipschutz.math_exercises;
 
-
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -8,12 +8,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-
 
 public class OpeningActivity extends AppCompatActivity {
     private EditText playerNameEditText;
-    private Button startGameButton;
+    private Button startGameButton, buttonHistory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,22 +22,27 @@ public class OpeningActivity extends AppCompatActivity {
 
         playerNameEditText = findViewById(R.id.playerNameEditText);
         startGameButton = findViewById(R.id.startGameButton);
+        buttonHistory = findViewById(R.id.buttonHistory);
 
         SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
         String savedName = prefs.getString("PLAYER_NAME", "");
         playerNameEditText.setText(savedName);
+
+        // בדיקה אם חזרנו מהיסטוריה
+        if (getIntent().getBooleanExtra("FROM_HISTORY", false)) {
+            showNameChangeDialog(savedName);
+        }
 
         startGameButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String playerName = playerNameEditText.getText().toString().trim();
 
-                // אפשר לבדוק שהשדה לא ריק
                 if (!playerName.isEmpty()) {
-                    SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putString("PLAYER_NAME", playerName);
                     editor.apply();
+
                     Intent intent = new Intent(OpeningActivity.this, MainActivity.class);
                     intent.putExtra("PLAYER_NAME", playerName);
                     startActivity(intent);
@@ -46,5 +51,19 @@ public class OpeningActivity extends AppCompatActivity {
                 }
             }
         });
+
+        buttonHistory.setOnClickListener(v -> {
+            Intent intent = new Intent(OpeningActivity.this, GameHistoryActivity.class);
+            startActivity(intent);
+        });
+    }
+
+    private void showNameChangeDialog(String currentName) {
+        new AlertDialog.Builder(this)
+                .setTitle("האם לשנות שם שחקן?")
+                .setMessage("השם הנוכחי הוא: " + currentName + "\nהאם ברצונך לשנות אותו?")
+                .setPositiveButton("כן", (dialog, which) -> playerNameEditText.setText(""))
+                .setNegativeButton("לא", null)
+                .show();
     }
 }

@@ -1,6 +1,5 @@
 package hana.lipschutz.math_exercises;
 
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -19,8 +18,7 @@ import java.util.ArrayList;
 public class GameHistoryActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
-    Button btnClear;
-    Button backToStartButton;
+    private Button btnClear, backToStartButton;
     private GameHistoryAdapter adapter;
     private ArrayList<GameResult> gameResults;
 
@@ -30,27 +28,43 @@ public class GameHistoryActivity extends AppCompatActivity {
         setContentView(R.layout.activity_game_history);
 
         recyclerView = findViewById(R.id.recyclerView);
-        backToStartButton = findViewById(R.id.backToStartButton);
         btnClear = findViewById(R.id.btnClearData);
+        backToStartButton = findViewById(R.id.backToStartButton);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         loadResults();
-        adapter = new GameHistoryAdapter(gameResults);
-        recyclerView.setAdapter(adapter);
 
-        backToStartButton.setOnClickListener(v -> {
-            Intent intent = new Intent(GameHistoryActivity.this, OpeningActivity.class);
-            startActivity(intent);
+        // יצירת האדפטר עם אפשרות למחיקה בודדת
+        adapter = new GameHistoryAdapter(gameResults, position -> {
+            gameResults.remove(position);
+            adapter.notifyItemRemoved(position);
+            saveResults(); // עדכון ב־SharedPreferences
         });
 
+        recyclerView.setAdapter(adapter);
+
         btnClear.setOnClickListener(v -> {
-            // מחיקת כל הנתונים שנשמרו
+            // איפוס ההיסטוריה כולל מחיקת השם
             SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
             prefs.edit().clear().apply();
 
-            // איפוס הרשימה בתצוגה
             gameResults.clear();
             adapter.notifyDataSetChanged();
+        });
+
+        backToStartButton.setOnClickListener(v -> {
+            SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+            String savedName = prefs.getString("PLAYER_NAME", "");
+
+            Intent intent = new Intent(GameHistoryActivity.this, OpeningActivity.class);
+
+            // רק אם נשאר שם, נשלח שהגענו מהיסטוריה
+            if (!savedName.isEmpty()) {
+                intent.putExtra("FROM_HISTORY", true);
+            }
+
+            startActivity(intent);
+            finish(); // סגירת המסך הנוכחי
         });
     }
 
@@ -60,5 +74,11 @@ public class GameHistoryActivity extends AppCompatActivity {
 
         Type listType = new TypeToken<ArrayList<GameResult>>() {}.getType();
         gameResults = new Gson().fromJson(json, listType);
+    }
+
+    private void saveResults() {
+        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+        String updatedJson = new Gson().toJson(gameResults);
+        prefs.edit().putString("GAME_RESULTS", updatedJson).apply();
     }
 }
