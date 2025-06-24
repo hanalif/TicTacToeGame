@@ -1,43 +1,49 @@
 package hana.lipschutz.math_exercises;
 
-import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.Toolbar;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
-    Model game;
+
+    private Model game;
     private TextView playerNameTextView;
     private Button[][] buttons = new Button[3][3];
     private String playerName;
-
+    private long startTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // קבלת שם שחקן מה-Intent או מה-SharedPreferences
         playerName = getIntent().getStringExtra("PLAYER_NAME");
         if (playerName == null || playerName.isEmpty()) {
             SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
             playerName = prefs.getString("PLAYER_NAME", "שחקן");
+        } else {
+            SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+            prefs.edit().putString("PLAYER_NAME", playerName).apply(); // שימור השם
         }
 
+        startTime = System.currentTimeMillis();
         game = new Model();
-        playerName = getIntent().getStringExtra("PLAYER_NAME");
 
         playerNameTextView = findViewById(R.id.playerNameTextView);
         playerNameTextView.setText("תורו של: " + playerName);
@@ -63,16 +69,20 @@ public class MainActivity extends AppCompatActivity {
         if (game.isGameOver()) return;
 
         if (game.makePlayerMove(row, col)) {
-            buttons[row][col].setText(game.PLAYER);
+            buttons[row][col].setText(Model.PLAYER);
 
-            if (game.checkWinner(game.PLAYER)) {
+            if (game.checkWinner(Model.PLAYER)) {
+                game.setWinner(playerName);
                 game.setGameOver(true);
+                saveCurrentResult();
                 showEndDialog(playerName + " ניצח!");
                 return;
             }
 
             if (game.isFull()) {
+                game.setWinner("תיקו");
                 game.setGameOver(true);
+                saveCurrentResult();
                 showEndDialog("תיקו!");
                 return;
             }
@@ -80,11 +90,15 @@ public class MainActivity extends AppCompatActivity {
             game.makeComputerMove();
             updateBoardFromModel();
 
-            if (game.checkWinner(game.COMPUTER)) {
+            if (game.checkWinner(Model.COMPUTER)) {
+                game.setWinner("מחשב");
                 game.setGameOver(true);
+                saveCurrentResult();
                 showEndDialog("המחשב ניצח!");
             } else if (game.isFull()) {
+                game.setWinner("תיקו");
                 game.setGameOver(true);
+                saveCurrentResult();
                 showEndDialog("תיקו!");
             }
         }
@@ -102,13 +116,40 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage(message)
                 .setCancelable(false)
                 .setPositiveButton("שחק שוב", (dialog, which) -> resetGame())
-                .setNegativeButton("סגור", (dialog, which) -> finish())
+                .setNegativeButton("סגור", (dialog, which) -> {
+                    Intent intent = new Intent(MainActivity.this, GameHistoryActivity.class);
+                    startActivity(intent);
+                    finish();
+                })
                 .show();
     }
 
     private void resetGame() {
         game.resetGame();
+        startTime = System.currentTimeMillis();
         playerNameTextView.setText("תורו של: " + playerName);
         updateBoardFromModel();
+    }
+
+    private void saveCurrentResult() {
+        long endTime = System.currentTimeMillis();
+        int durationSeconds = (int) ((endTime - startTime) / 1000);
+        saveResult(game.getWinner(), durationSeconds);
+    }
+
+    private void saveResult(String winner, int durationSeconds) {
+        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+        Gson gson = new Gson();
+
+        String json = prefs.getString("GAME_RESULTS", "[]");
+        Type listType = new TypeToken<ArrayList<GameResult>>() {}.getType();
+        ArrayList<GameResult> list = gson.fromJson(json, listType);
+
+        String dateTime = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
+        GameResult result = new GameResult(winner, dateTime, durationSeconds);
+        list.add(result);
+
+        String updatedJson = gson.toJson(list);
+        prefs.edit().putString("GAME_RESULTS", updatedJson).apply();
     }
 }

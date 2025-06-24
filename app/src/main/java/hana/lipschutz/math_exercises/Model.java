@@ -9,6 +9,7 @@ public class Model {
     public static final int SIZE = 3;
     public static final String PLAYER = "X";
     public static final String COMPUTER = "O";
+    private String winner = null;
 
     private String[][] board;
     private boolean gameOver;
@@ -19,7 +20,7 @@ public class Model {
     }
 
     public boolean makePlayerMove(int row, int col) {
-        if (!gameOver && board[row][col].isEmpty()) {
+        if (!gameOver && (board[row][col] == null || board[row][col].isEmpty())) {
             board[row][col] = PLAYER;
             return true;
         }
@@ -32,7 +33,7 @@ public class Model {
         List<int[]> emptyCells = new ArrayList<>();
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
-                if (board[i][j].isEmpty()) {
+                if (board[i][j] == null || board[i][j].isEmpty()) {
                     emptyCells.add(new int[]{i, j});
                 }
             }
@@ -48,15 +49,13 @@ public class Model {
     }
 
     public boolean checkWinner(String symbol) {
-        // שורות ועמודות
         for (int i = 0; i < SIZE; i++) {
-            if (board[i][0].equals(symbol) && board[i][1].equals(symbol) && board[i][2].equals(symbol)) return true;
-            if (board[0][i].equals(symbol) && board[1][i].equals(symbol) && board[2][i].equals(symbol)) return true;
+            if (symbol.equals(board[i][0]) && symbol.equals(board[i][1]) && symbol.equals(board[i][2])) return true;
+            if (symbol.equals(board[0][i]) && symbol.equals(board[1][i]) && symbol.equals(board[2][i])) return true;
         }
 
-        // אלכסונים
-        if (board[0][0].equals(symbol) && board[1][1].equals(symbol) && board[2][2].equals(symbol)) return true;
-        if (board[0][2].equals(symbol) && board[1][1].equals(symbol) && board[2][0].equals(symbol)) return true;
+        if (symbol.equals(board[0][0]) && symbol.equals(board[1][1]) && symbol.equals(board[2][2])) return true;
+        if (symbol.equals(board[0][2]) && symbol.equals(board[1][1]) && symbol.equals(board[2][0])) return true;
 
         return false;
     }
@@ -64,13 +63,14 @@ public class Model {
     public boolean isFull() {
         for (int i = 0; i < SIZE; i++)
             for (int j = 0; j < SIZE; j++)
-                if (board[i][j].isEmpty())
+                if (board[i][j] == null || board[i][j].isEmpty())
                     return false;
         return true;
     }
 
     public void resetGame() {
         gameOver = false;
+        winner = null;
         for (int i = 0; i < SIZE; i++)
             for (int j = 0; j < SIZE; j++)
                 board[i][j] = "";
@@ -88,4 +88,11 @@ public class Model {
         return gameOver;
     }
 
+    public void setWinner(String w) {
+        winner = w;
+    }
+
+    public String getWinner() {
+        return winner;
+    }
 }
