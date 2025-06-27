@@ -1,9 +1,13 @@
 package hana.lipschutz.math_exercises;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -34,20 +38,22 @@ public class GameHistoryActivity extends AppCompatActivity {
 
         loadResults();
 
-        // יצירת האדפטר עם אפשרות למחיקה בודדת
-        adapter = new GameHistoryAdapter(gameResults, position -> {
-            gameResults.remove(position);
-            adapter.notifyItemRemoved(position);
-            saveResults(); // עדכון ב־SharedPreferences
-        });
+        adapter = new GameHistoryAdapter(
+                gameResults,
+                position -> {
+                    // מחיקה בלחיצה על כפתור מחיקה
+                    gameResults.remove(position);
+                    adapter.notifyItemRemoved(position);
+                    saveResults();
+                },
+                this::showGameDetailsDialog // פעולה בלחיצה על פריט
+        );
 
         recyclerView.setAdapter(adapter);
 
         btnClear.setOnClickListener(v -> {
-            // איפוס ההיסטוריה כולל מחיקת השם
             SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
             prefs.edit().clear().apply();
-
             gameResults.clear();
             adapter.notifyDataSetChanged();
         });
@@ -55,23 +61,18 @@ public class GameHistoryActivity extends AppCompatActivity {
         backToStartButton.setOnClickListener(v -> {
             SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
             String savedName = prefs.getString("PLAYER_NAME", "");
-
             Intent intent = new Intent(GameHistoryActivity.this, OpeningActivity.class);
-
-            // רק אם נשאר שם, נשלח שהגענו מהיסטוריה
             if (!savedName.isEmpty()) {
                 intent.putExtra("FROM_HISTORY", true);
             }
-
             startActivity(intent);
-            finish(); // סגירת המסך הנוכחי
+            finish();
         });
     }
 
     private void loadResults() {
         SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
         String json = prefs.getString("GAME_RESULTS", "[]");
-
         Type listType = new TypeToken<ArrayList<GameResult>>() {}.getType();
         gameResults = new Gson().fromJson(json, listType);
     }
@@ -80,5 +81,25 @@ public class GameHistoryActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
         String updatedJson = new Gson().toJson(gameResults);
         prefs.edit().putString("GAME_RESULTS", updatedJson).apply();
+    }
+
+    private void showGameDetailsDialog(GameResult result) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_game_details, null);
+
+        TextView winnerText = dialogView.findViewById(R.id.dialogWinnerText);
+        TextView dateTimeText = dialogView.findViewById(R.id.dialogDateTimeText);
+        TextView durationText = dialogView.findViewById(R.id.dialogDurationText);
+        Button closeBtn = dialogView.findViewById(R.id.dialogCloseButton);
+
+        winnerText.setText("ניצח: " + result.getWinner());
+        dateTimeText.setText("תאריך: " + result.getDateTime());
+        durationText.setText("משך: " + result.getDurationSeconds() + " שניות");
+
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        closeBtn.setOnClickListener(v -> dialog.dismiss());
     }
 }
