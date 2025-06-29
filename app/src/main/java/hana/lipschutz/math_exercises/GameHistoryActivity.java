@@ -68,6 +68,12 @@ public class GameHistoryActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+
+        Button buttonInfo = findViewById(R.id.buttonInfo);
+        buttonInfo.setOnClickListener(v -> {
+            Intent intent = new Intent(GameHistoryActivity.this, InfoActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void loadResults() {

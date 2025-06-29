@@ -56,6 +56,13 @@ public class OpeningActivity extends AppCompatActivity {
             Intent intent = new Intent(OpeningActivity.this, GameHistoryActivity.class);
             startActivity(intent);
         });
+
+        Button buttonInfo = findViewById(R.id.buttonInfo);
+        buttonInfo.setOnClickListener(v -> {
+            Intent intent = new Intent(OpeningActivity.this, InfoActivity.class);
+            startActivity(intent);
+        });
+
     }
 
     private void showNameChangeDialog(String currentName) {

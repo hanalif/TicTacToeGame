@@ -42,4 +42,12 @@
         android:layout_height="wrap_content"
         android:text="איפוס היסטוריה"
         android:layout_marginTop="8dp"/>
+
+    <Button
+        android:id="@+id/buttonInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="מידע על המשחק"
+        android:layout_marginTop="16dp"
+        android:layout_gravity="center_horizontal"/>
 </LinearLayout>
