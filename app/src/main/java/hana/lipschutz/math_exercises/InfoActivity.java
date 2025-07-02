@@ -3,6 +3,7 @@ package hana.lipschutz.math_exercises;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -15,6 +16,7 @@ public class InfoActivity extends AppCompatActivity {
 
     private Spinner videoSpinner;
     private Button buttonToHistory, buttonToOpening;
+    private static final String TAG = "InfoActivity";
 
     private String[] titles = {
             "מהו איקס עיגול?",
@@ -84,5 +86,29 @@ public class InfoActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart נקרא");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume נקרא");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause נקרא");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop נקרא");
     }
 }
