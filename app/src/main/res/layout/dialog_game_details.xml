@@ -35,6 +35,13 @@
         android:textSize="16sp"
         android:textColor="#333333" />
 
+    <ImageView
+        android:id="@+id/dialogScreenshotImage"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:scaleType="fitCenter"
+        android:contentDescription="תמונה של מסך המשחק" />
+
     <Button
         android:id="@+id/dialogCloseButton"
         android:layout_width="match_parent"

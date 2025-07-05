@@ -2,7 +2,6 @@ package hana.lipschutz.math_exercises;
 
 import android.app.AlertDialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,18 +12,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import java.lang.reflect.Type;
-import java.util.ArrayList;
+import java.util.List;
 
 public class GameHistoryActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
-    private Button btnClear, backToStartButton;
+    private AppDatabase db;
+    private Button btnClear, backToStartButton, buttonInfo;
     private GameHistoryAdapter adapter;
-    private ArrayList<GameResult> gameResults;
+    private List<GameResult> gameResults;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,42 +30,22 @@ public class GameHistoryActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         btnClear = findViewById(R.id.btnClearData);
         backToStartButton = findViewById(R.id.backToStartButton);
+        buttonInfo = findViewById(R.id.buttonInfo);
+
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        db = AppDatabase.getInstance(this);
 
         loadResults();
 
-        adapter = new GameHistoryAdapter(
-                gameResults,
-                position -> {
-                    // מחיקה בלחיצה על כפתור מחיקה
-                    gameResults.remove(position);
-                    adapter.notifyItemRemoved(position);
-                    saveResults();
-                },
-                this::showGameDetailsDialog // פעולה בלחיצה על פריט
-        );
-
-        recyclerView.setAdapter(adapter);
-
-        btnClear.setOnClickListener(v -> {
-            SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
-            prefs.edit().clear().apply();
-            gameResults.clear();
-            adapter.notifyDataSetChanged();
-        });
+        btnClear.setOnClickListener(v -> clearHistory());
 
         backToStartButton.setOnClickListener(v -> {
-            SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
-            String savedName = prefs.getString("PLAYER_NAME", "");
             Intent intent = new Intent(GameHistoryActivity.this, OpeningActivity.class);
-            if (!savedName.isEmpty()) {
-                intent.putExtra("FROM_HISTORY", true);
-            }
             startActivity(intent);
             finish();
         });
 
-        Button buttonInfo = findViewById(R.id.buttonInfo);
         buttonInfo.setOnClickListener(v -> {
             Intent intent = new Intent(GameHistoryActivity.this, InfoActivity.class);
             startActivity(intent);
@@ -77,16 +53,36 @@ public class GameHistoryActivity extends AppCompatActivity {
     }
 
     private void loadResults() {
-        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
-        String json = prefs.getString("GAME_RESULTS", "[]");
-        Type listType = new TypeToken<ArrayList<GameResult>>() {}.getType();
-        gameResults = new Gson().fromJson(json, listType);
+        new Thread(() -> {
+            gameResults = db.gameResultDao().getAllResults();
+
+            runOnUiThread(() -> {
+                adapter = new GameHistoryAdapter(
+                        gameResults,
+                        position -> deleteResult(position),
+                        this::showGameDetailsDialog
+                );
+                recyclerView.setAdapter(adapter);
+            });
+        }).start();
     }
 
-    private void saveResults() {
-        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
-        String updatedJson = new Gson().toJson(gameResults);
-        prefs.edit().putString("GAME_RESULTS", updatedJson).apply();
+    private void deleteResult(int position) {
+        new Thread(() -> {
+            db.gameResultDao().delete(gameResults.get(position));
+            gameResults.remove(position);
+
+            runOnUiThread(() -> adapter.notifyItemRemoved(position));
+        }).start();
+    }
+
+    private void clearHistory() {
+        new Thread(() -> {
+            db.gameResultDao().deleteAll();
+            gameResults.clear();
+
+            runOnUiThread(() -> adapter.notifyDataSetChanged());
+        }).start();
     }
 
     private void showGameDetailsDialog(GameResult result) {

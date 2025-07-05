@@ -22,6 +22,7 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
 
     private Model game;
+    private AppDatabase db;
     private TextView playerNameTextView;
     private Button[][] buttons = new Button[3][3];
     private String playerName;
@@ -31,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        db = AppDatabase.getInstance(this);
 
         // קבלת שם שחקן מה-Intent או מה-SharedPreferences
         playerName = getIntent().getStringExtra("PLAYER_NAME");
@@ -134,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
     private void saveCurrentResult() {
         long endTime = System.currentTimeMillis();
         int durationSeconds = (int) ((endTime - startTime) / 1000);
-        saveResult(game.getWinner(), durationSeconds);
+        saveResultToDatabase(game.getWinner(), durationSeconds);
     }
 
     private void saveResult(String winner, int durationSeconds) {
@@ -152,4 +154,15 @@ public class MainActivity extends AppCompatActivity {
         String updatedJson = gson.toJson(list);
         prefs.edit().putString("GAME_RESULTS", updatedJson).apply();
     }
+
+    private void saveResultToDatabase(String winner, int durationSeconds) {
+        new Thread(() -> {
+            String dateTime = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
+            GameResult result = new GameResult(winner, dateTime, durationSeconds);
+
+            db.gameResultDao().insert(result);
+        }).start();
+    }
+
+
 }
