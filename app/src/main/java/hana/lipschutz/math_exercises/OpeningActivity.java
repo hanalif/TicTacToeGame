@@ -1,6 +1,5 @@
 package hana.lipschutz.math_exercises;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -66,10 +65,17 @@ public class OpeningActivity extends AppCompatActivity {
     }
 
     private void showNameChangeDialog(String currentName) {
+        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
+
         new AlertDialog.Builder(this)
                 .setTitle("האם לשנות שם שחקן?")
                 .setMessage("השם הנוכחי הוא: " + currentName + "\nהאם ברצונך לשנות אותו?")
-                .setPositiveButton("כן", (dialog, which) -> playerNameEditText.setText(""))
+                .setPositiveButton("כן", (dialog, which) -> {
+                    // מחיקה מה-SharedPreferences
+                    prefs.edit().remove("PLAYER_NAME").apply();
+                    // איפוס התיבה
+                    playerNameEditText.setText("");
+                })
                 .setNegativeButton("לא", null)
                 .show();
     }

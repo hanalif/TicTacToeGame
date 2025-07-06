@@ -40,16 +40,32 @@ public class GameHistoryActivity extends AppCompatActivity {
 
         btnClear.setOnClickListener(v -> clearHistory());
 
-        backToStartButton.setOnClickListener(v -> {
-            Intent intent = new Intent(GameHistoryActivity.this, OpeningActivity.class);
-            startActivity(intent);
-            finish();
-        });
+        backToStartButton.setOnClickListener(v -> showReturnDialog());
 
         buttonInfo.setOnClickListener(v -> {
             Intent intent = new Intent(GameHistoryActivity.this, InfoActivity.class);
             startActivity(intent);
         });
+    }
+
+    private void showReturnDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("חזרה למסך הראשי")
+                .setMessage("האם ברצונך לשנות את שם השחקן?")
+                .setPositiveButton("כן", (dialog, which) -> {
+                    // רק שולחים דגל, לא מוחקים פה
+                    Intent intent = new Intent(GameHistoryActivity.this, OpeningActivity.class);
+                    intent.putExtra("FROM_HISTORY", true);
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton("לא", (dialog, which) -> {
+                    Intent intent = new Intent(GameHistoryActivity.this, OpeningActivity.class);
+                    intent.putExtra("FROM_HISTORY", false);
+                    startActivity(intent);
+                    finish();
+                })
+                .show();
     }
 
     private void loadResults() {
