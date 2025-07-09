@@ -2,20 +2,19 @@ package hana.lipschutz.math_exercises;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.GridLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import java.lang.reflect.Type;
+import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -24,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     private Model game;
     private AppDatabase db;
     private TextView playerNameTextView;
+    private ImageView imageViewProfile;
     private Button[][] buttons = new Button[3][3];
     private String playerName;
     private long startTime;
@@ -48,6 +48,10 @@ public class MainActivity extends AppCompatActivity {
         game = new Model();
 
         playerNameTextView = findViewById(R.id.playerNameTextView);
+        imageViewProfile = findViewById(R.id.imageViewProfile);
+
+        loadProfileImage();
+
         playerNameTextView.setText("תורו של: " + playerName);
 
         GridLayout gridLayout = findViewById(R.id.gridLayout);
@@ -64,6 +68,17 @@ public class MainActivity extends AppCompatActivity {
                 btn.setOnClickListener(v -> handlePlayerClick(finalRow, finalCol));
                 index++;
             }
+        }
+    }
+
+    private void loadProfileImage() {
+        File file = new File(getFilesDir(), "profile.jpg");
+        if (file.exists()) {
+            Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+            imageViewProfile.setImageBitmap(bitmap);
+        } else {
+            // תמונת ברירת מחדל במידה ואין תמונה
+            imageViewProfile.setImageResource(R.drawable.profile_avatar);
         }
     }
 
@@ -139,22 +154,6 @@ public class MainActivity extends AppCompatActivity {
         saveResultToDatabase(game.getWinner(), durationSeconds);
     }
 
-    private void saveResult(String winner, int durationSeconds) {
-        SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
-        Gson gson = new Gson();
-
-        String json = prefs.getString("GAME_RESULTS", "[]");
-        Type listType = new TypeToken<ArrayList<GameResult>>() {}.getType();
-        ArrayList<GameResult> list = gson.fromJson(json, listType);
-
-        String dateTime = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
-        GameResult result = new GameResult(winner, dateTime, durationSeconds);
-        list.add(result);
-
-        String updatedJson = gson.toJson(list);
-        prefs.edit().putString("GAME_RESULTS", updatedJson).apply();
-    }
-
     private void saveResultToDatabase(String winner, int durationSeconds) {
         new Thread(() -> {
             String dateTime = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
@@ -163,6 +162,5 @@ public class MainActivity extends AppCompatActivity {
             db.gameResultDao().insert(result);
         }).start();
     }
-
 
 }
