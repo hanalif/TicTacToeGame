@@ -104,22 +104,34 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            game.makeComputerMove();
-            updateBoardFromModel();
+            // עדכון לכותרת ותמונה של המחשב
+            playerNameTextView.setText("תורו של: מחשב");
+            imageViewProfile.setImageResource(R.drawable.computer_avatar);
 
-            if (game.checkWinner(Model.COMPUTER)) {
-                game.setWinner("מחשב");
-                game.setGameOver(true);
-                saveCurrentResult();
-                showEndDialog("המחשב ניצח!");
-            } else if (game.isFull()) {
-                game.setWinner("תיקו");
-                game.setGameOver(true);
-                saveCurrentResult();
-                showEndDialog("תיקו!");
-            }
+            // השהייה קטנה לפני מהלך המחשב כדי להציג את הכותרת והתמונה
+            new android.os.Handler().postDelayed(() -> {
+                game.makeComputerMove();
+                updateBoardFromModel();
+
+                if (game.checkWinner(Model.COMPUTER)) {
+                    game.setWinner("מחשב");
+                    game.setGameOver(true);
+                    saveCurrentResult();
+                    showEndDialog("המחשב ניצח!");
+                } else if (game.isFull()) {
+                    game.setWinner("תיקו");
+                    game.setGameOver(true);
+                    saveCurrentResult();
+                    showEndDialog("תיקו!");
+                } else {
+                    // החזרת התור לשחקן
+                    playerNameTextView.setText("תורו של: " + playerName);
+                    loadProfileImage();
+                }
+            }, 800);
         }
     }
+
 
     private void updateBoardFromModel() {
         for (int row = 0; row < 3; row++)

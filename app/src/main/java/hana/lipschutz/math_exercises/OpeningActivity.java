@@ -116,12 +116,24 @@ public class OpeningActivity extends AppCompatActivity {
                 .setTitle("האם לשנות שם שחקן?")
                 .setMessage("השם הנוכחי הוא: " + currentName + "\nהאם ברצונך לשנות אותו?")
                 .setPositiveButton("כן", (dialog, which) -> {
+                    // מחיקה מה-SharedPreferences
                     prefs.edit().remove("PLAYER_NAME").apply();
+                    // איפוס שדה הטקסט
                     playerNameEditText.setText("");
+
+                    // מחיקה של תמונת הפרופיל ושחזור לתמונה ברירת מחדל
+                    File file = new File(getFilesDir(), "profile.jpg");
+                    if (file.exists()) file.delete();
+
+                    // הצגת אווטאר ברירת מחדל (למשל imageViewProfile_default)
+                    imageViewProfile.setImageResource(R.drawable.profile_avatar);
                 })
                 .setNegativeButton("לא", null)
                 .show();
     }
+
+
+
 
     private void showImagePickerDialog() {
         String[] options = {"צלם תמונה", "בחר מהגלריה"};
@@ -156,6 +168,9 @@ public class OpeningActivity extends AppCompatActivity {
         if (file.exists()) {
             Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
             imageViewProfile.setImageBitmap(bitmap);
+        } else {
+            imageViewProfile.setImageResource(R.drawable.profile_avatar);
         }
     }
+
 }
