@@ -27,17 +27,4 @@
         android:textColor="@color/black"
     />
 
-    <Button
-        android:id="@+id/buttonToOpening"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="חזרה למסך פתיחה"
-        android:layout_marginBottom="16dp"/>
-
-    <Button
-        android:id="@+id/buttonToHistory"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="לעמוד היסטוריה"/>
-
 </LinearLayout>

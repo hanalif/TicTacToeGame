@@ -36,6 +36,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="false" />
+        <activity android:name=".MenuActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

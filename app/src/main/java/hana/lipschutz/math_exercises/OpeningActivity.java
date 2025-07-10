@@ -23,7 +23,7 @@ import java.io.IOException;
 public class OpeningActivity extends AppCompatActivity {
 
     private EditText playerNameEditText;
-    private Button startGameButton, buttonHistory, buttonChangePhoto, buttonInfo;
+    private Button startGameButton, buttonChangePhoto, buttonInfo;
     private ImageView imageViewProfile;
 
     private ActivityResultLauncher<Intent> cameraLauncher;
@@ -36,7 +36,6 @@ public class OpeningActivity extends AppCompatActivity {
 
         playerNameEditText = findViewById(R.id.playerNameEditText);
         startGameButton = findViewById(R.id.startGameButton);
-        buttonHistory = findViewById(R.id.buttonHistory);
         buttonChangePhoto = findViewById(R.id.buttonChangePhoto);
         buttonInfo = findViewById(R.id.buttonInfo);
         imageViewProfile = findViewById(R.id.imageViewProfile);
@@ -66,13 +65,8 @@ public class OpeningActivity extends AppCompatActivity {
             }
         });
 
-        buttonHistory.setOnClickListener(v -> {
-            Intent intent = new Intent(OpeningActivity.this, GameHistoryActivity.class);
-            startActivity(intent);
-        });
-
         buttonInfo.setOnClickListener(v -> {
-            Intent intent = new Intent(OpeningActivity.this, InfoActivity.class);
+            Intent intent = new Intent(OpeningActivity.this, MenuActivity.class);
             startActivity(intent);
         });
 

@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
                 .setCancelable(false)
                 .setPositiveButton("שחק שוב", (dialog, which) -> resetGame())
                 .setNegativeButton("סגור", (dialog, which) -> {
-                    Intent intent = new Intent(MainActivity.this, GameHistoryActivity.class);
+                    Intent intent = new Intent(MainActivity.this, MenuActivity.class);
                     startActivity(intent);
                     finish();
                 })
